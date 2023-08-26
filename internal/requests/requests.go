@@ -9,6 +9,11 @@ import (
 	"github.com/IDL13/avito/pkg/mysql"
 )
 
+type Set struct {
+	id      int
+	segment string
+}
+
 func CreateTables() error {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
@@ -109,4 +114,34 @@ func DeleteSegment(segment string) error {
 		os.Exit(1)
 	}
 	return nil
+}
+
+func SearchSegmentsForUser() (map[int][]string, error) {
+	config := config.GetConfig()
+	conn, err := mysql.NewClient(*config)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error from Connection: %v\n", err)
+		os.Exit(1)
+	}
+	q := `SELECT Users.Id, Dependencies.Segment FROM Users RIGHT JOIN Dependencies ON Users.Id = Dependencies.UserId;`
+	row, err := conn.Query(q)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error while adding data: %v\n", err)
+		os.Exit(1)
+	}
+	m := make(map[int][]string)
+	for row.Next() {
+		var S Set
+		err = row.Scan(&S.id, &S.segment)
+		if err != nil {
+			panic(err)
+		}
+		_, ok := m[S.id]
+		if ok {
+			m[S.id] = append(m[S.id], S.segment)
+		} else {
+			m[S.id] = append(m[S.id], S.segment)
+		}
+	}
+	return m, nil
 }
