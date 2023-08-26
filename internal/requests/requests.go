@@ -1,6 +1,7 @@
 package request
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -15,9 +16,9 @@ func CreateTables() error {
 		fmt.Fprintf(os.Stderr, "Error from requests in Insert function: %v\n", err)
 		os.Exit(1)
 	}
-	q1 := `CREATE TABLE Users (Id INT NOT NULL, Name VARCHAR(255),CONSTRAINT PK_User_Id PRIMARY KEY (Id));`
-	q2 := `CREATE TABLE Dependencies (Id INT NOT NULL, UserId INT NOT NULL, Segment VARCHAR(512),CONSTRAINT PK_Segment_Id PRIMARY KEY (Id),CONSTRAINT FK_Segment_User FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE CASCADE ON UPDATE CASCADE);`
-	q3 := `CREATE TABLE Segments (Id INT NOT NULL, Segment VARCHAR(255),CONSTRAINT PK_Segment_Id PRIMARY KEY (Id));`
+	q1 := `CREATE TABLE Users (Id INT NOT NULL AUTO_INCREMENT, Name VARCHAR(255),CONSTRAINT PK_User_Id PRIMARY KEY (Id));`
+	q2 := `CREATE TABLE Dependencies (Id INT NOT NULL AUTO_INCREMENT, UserId INT NOT NULL, Segment VARCHAR(512),CONSTRAINT PK_Segment_Id PRIMARY KEY (Id),CONSTRAINT FK_Segment_User FOREIGN KEY (UserId) REFERENCES Users (Id) ON DELETE CASCADE ON UPDATE CASCADE);`
+	q3 := `CREATE TABLE Segments (Id INT NOT NULL AUTO_INCREMENT, Segment VARCHAR(255),CONSTRAINT PK_Segment_Id PRIMARY KEY (Id));`
 	_, err = conn.Exec(q1)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error from CrateDatabase: %v\n", err)
@@ -36,15 +37,15 @@ func CreateTables() error {
 	return nil
 }
 
-func InsertUser(id int, name string) error {
+func InsertUser(name string) error {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error from Connection: %v\n", err)
 		os.Exit(1)
 	}
-	q := `INSERT INTO Users (Id, Name) VALUES (?, ?)`
-	_, err = conn.Exec(q, id, name)
+	q := `INSERT INTO Users (Name) VALUES (?)`
+	_, err = conn.Exec(q, name)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error while adding data: %v\n", err)
 		os.Exit(1)
@@ -68,15 +69,25 @@ func DeleteUser(name string) error {
 	return nil
 }
 
-func InserSegment(id int, segment string) error {
+func InserSegment(segment string) error {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error from Connection: %v\n", err)
 		os.Exit(1)
 	}
-	q := `INSERT INTO Segments (Id, Segment) VALUES (?, ?)`
-	_, err = conn.Exec(q, id, segment)
+	valid := `SELECT Segment FROM Segments WHERE Segment = ?`
+	row, err := conn.Query(valid, segment)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error while adding data: %v\n", err)
+		os.Exit(1)
+	}
+	if row.Next() {
+		err = errors.New("Duplicate")
+		return err
+	}
+	q := `INSERT INTO Segments (Segment) VALUES (?)`
+	_, err = conn.Exec(q, segment)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error while adding data: %v\n", err)
 		os.Exit(1)
