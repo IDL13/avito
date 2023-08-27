@@ -12,6 +12,11 @@ import (
 
 type Handler struct{}
 
+type dependenciesData struct {
+	UserId   string   `json:"id"`
+	Segments []string `json:"segments"`
+}
+
 func GettingData(r *http.Request, keyRequest string) (s string, err error) {
 	param := r.Body
 	var result map[string]string
@@ -57,7 +62,40 @@ func (h *Handler) DeletingSegment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) DeletingUserSegments(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		param := r.Body
+		var d dependenciesData
+		json.NewDecoder(param).Decode(&d)
+		formatId, err := strconv.Atoi(d.UserId)
+		if err != nil {
+			panic(err)
+		}
+		err = request.DeleteDependencies(formatId, d.Segments)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		w.Write([]byte("This url only handles POST requests"))
+	}
+}
+
 func (h *Handler) AddingUserToSegment(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		param := r.Body
+		var d dependenciesData
+		json.NewDecoder(param).Decode(&d)
+		formatId, err := strconv.Atoi(d.UserId)
+		if err != nil {
+			panic(err)
+		}
+		err = request.InsertDependencies(formatId, d.Segments)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		w.Write([]byte("This url only handles POST requests"))
+	}
 }
 
 func (h *Handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Request) {
@@ -73,14 +111,19 @@ func (h *Handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Reque
 		}
 		info, err := request.SearchSegmentsForUser()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Segment serc error:%v", err)
+			fmt.Fprintf(os.Stderr, "Segment serch error:%v", err)
 			os.Exit(1)
 		}
 		for key, value := range info {
 			if key == jsonInt {
-				for i := range value {
-					w.Write([]byte(value[i] + "\n"))
+				ans := make(map[int][]string)
+				ans[key] = value
+				js, err := json.Marshal(ans)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "json marshaling error:%v", err)
+					os.Exit(1)
 				}
+				w.Write(js)
 			}
 		}
 	} else {

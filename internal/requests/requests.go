@@ -145,3 +145,39 @@ func SearchSegmentsForUser() (map[int][]string, error) {
 	}
 	return m, nil
 }
+
+func InsertDependencies(UserId int, Segments []string) error {
+	config := config.GetConfig()
+	conn, err := mysql.NewClient(*config)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error from Connection: %v\n", err)
+		os.Exit(1)
+	}
+	q := `INSERT INTO Dependencies (UserId, Segment) VALUES (?, ?)`
+	for iter := range Segments {
+		_, err := conn.Exec(q, UserId, Segments[iter])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Cyclic data append error: %v\n", err)
+			os.Exit(1)
+		}
+	}
+	return nil
+}
+
+func DeleteDependencies(UserId int, Segments []string) error {
+	config := config.GetConfig()
+	conn, err := mysql.NewClient(*config)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error from Connection: %v\n", err)
+		os.Exit(1)
+	}
+	q := `DELETE FROM Dependencies WHERE UserId = ? AND Segment = ?`
+	for iter := range Segments {
+		_, err := conn.Exec(q, UserId, Segments[iter])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Cyclic data remove error: %v\n", err)
+			os.Exit(1)
+		}
+	}
+	return nil
+}
