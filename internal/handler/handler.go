@@ -8,13 +8,21 @@ import (
 	"strconv"
 
 	request "github.com/IDL13/avito/internal/requests"
+	"github.com/IDL13/avito/internal/timer"
 )
 
 type Handler struct{}
 
 type dependenciesData struct {
-	UserId   string   `json:"id"`
-	Segments []string `json:"segments"`
+	UserId         string   `json:"id"`
+	DeleteSegments []string `json:"del_segments"`
+	AddSegments    []string `json:"add_segments"`
+}
+
+type ttlStruct struct {
+	DependenciesData dependenciesData `json:"data"`
+	Start            string           `json:"start"`
+	Stop             string           `json:"stop"`
 }
 
 func GettingData(r *http.Request, keyRequest string) (s string, err error) {
@@ -62,7 +70,7 @@ func (h *Handler) DeletingSegment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) DeletingUserSegments(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AddDelSegments(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		param := r.Body
 		var d dependenciesData
@@ -71,27 +79,17 @@ func (h *Handler) DeletingUserSegments(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		err = request.DeleteDependencies(formatId, d.Segments)
-		if err != nil {
-			panic(err)
+		if len(d.AddSegments) > 0 {
+			err = request.InsertDependencies(formatId, d.AddSegments)
+			if err != nil {
+				panic(err)
+			}
 		}
-	} else {
-		w.Write([]byte("This url only handles POST requests"))
-	}
-}
-
-func (h *Handler) AddingUserToSegment(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		param := r.Body
-		var d dependenciesData
-		json.NewDecoder(param).Decode(&d)
-		formatId, err := strconv.Atoi(d.UserId)
-		if err != nil {
-			panic(err)
-		}
-		err = request.InsertDependencies(formatId, d.Segments)
-		if err != nil {
-			panic(err)
+		if len(d.DeleteSegments) > 0 {
+			err = request.DeleteDependencies(formatId, d.DeleteSegments)
+			if err != nil {
+				panic(err)
+			}
 		}
 	} else {
 		w.Write([]byte("This url only handles POST requests"))
@@ -125,6 +123,28 @@ func (h *Handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Reque
 				}
 				w.Write(js)
 			}
+		}
+	} else {
+		w.Write([]byte("This url only handles POST requests"))
+	}
+}
+
+func (h *Handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		param := r.Body
+		var ttl ttlStruct
+		json.NewDecoder(param).Decode(&ttl)
+		formatId, err := strconv.Atoi(ttl.DependenciesData.UserId)
+		if err != nil {
+			panic(err)
+		}
+		err = timer.CallAt(ttl.Start, request.InsertDependencies, formatId, ttl.DependenciesData.AddSegments)
+		if err != nil {
+			panic(err)
+		}
+		err = timer.CallAt(ttl.Stop, request.DeleteDependencies, formatId, ttl.DependenciesData.AddSegments)
+		if err != nil {
+			panic(err)
 		}
 	} else {
 		w.Write([]byte("This url only handles POST requests"))

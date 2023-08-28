@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  server:
+    build: ./
+    command: ./avito
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+  
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_ROOT_PASSWORD: 'avito'
+    ports:
+      - "3306:3306"
