@@ -4,8 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 
+	"github.com/IDL13/avito/internal/CSV"
 	"github.com/IDL13/avito/internal/config"
+	"github.com/IDL13/avito/internal/timer"
 	"github.com/IDL13/avito/pkg/mysql"
 )
 
@@ -160,6 +163,11 @@ func InsertDependencies(UserId int, Segments []string) error {
 			fmt.Fprintf(os.Stderr, "Cyclic data append error: %v\n", err)
 			os.Exit(1)
 		}
+		err = CSV.WriteInCSV([]string{strconv.Itoa(UserId), Segments[iter], "Add", timer.TimeNow()})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Cyclic CSV writing error: %v\n", err)
+			os.Exit(1)
+		}
 	}
 	return nil
 }
@@ -176,6 +184,11 @@ func DeleteDependencies(UserId int, Segments []string) error {
 		_, err := conn.Exec(q, UserId, Segments[iter])
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Cyclic data remove error: %v\n", err)
+			os.Exit(1)
+		}
+		err = CSV.WriteInCSV([]string{strconv.Itoa(UserId), Segments[iter], "Del", timer.TimeNow()})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Cyclic CSV writing error: %v\n", err)
 			os.Exit(1)
 		}
 	}

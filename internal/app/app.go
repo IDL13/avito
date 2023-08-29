@@ -2,10 +2,11 @@ package app
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/IDL13/avito/internal/CSV"
 	"github.com/IDL13/avito/internal/handler"
 )
 
@@ -29,6 +30,7 @@ func New() *App {
 	http.HandleFunc("/adding_user_to_segment", a.h.AddDelSegments)
 	http.HandleFunc("/getting_active_user_segments", a.h.GettingActiveUserSegments)
 	http.HandleFunc("/ttl_adding_user_to_segment", a.h.TtlAddDelSegments)
+	http.HandleFunc("/history", a.h.Hishtory)
 	return a
 }
 
@@ -43,9 +45,14 @@ func (a *App) Run() {
 	`)
 	fmt.Println("[SERVER STARTED]")
 	fmt.Println("http://127.0.0.1:8080/")
-	log.Fatal(a.s.ListenAndServe())
-	// err := request.CreateTables()
-	// if err != nil {
+	if err := CSV.CreateCSV(); err != nil {
+		panic(err)
+	}
+	// if err := request.CreateTables(); err != nil {
 	// 	panic(err)
 	// }
+	defer os.Remove("./csv_log.csv")
+	if err := a.s.ListenAndServe(); err != nil {
+		os.Exit(1)
+	}
 }

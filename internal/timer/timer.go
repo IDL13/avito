@@ -6,12 +6,20 @@ import (
 	"time"
 )
 
-const timeLayout = "2006-01-02T15:04:00"
+const (
+	timeLayout      = "2006-01-02T15:04:00"
+	timeLayoutShort = "2006-01"
+)
+
+func TimeNow() string {
+	now := time.Now().Format(timeLayoutShort)
+	return now
+}
 
 func CallAt(callTime string, f func(int, []string) error, UserId int, Segments []string) error {
 	cTime, err := time.Parse(timeLayout, callTime)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "json marshaling error:%v", err)
+		fmt.Fprintf(os.Stderr, "Time Parse Error:%v", err)
 		os.Exit(1)
 	}
 	n := time.Now().Format(timeLayout)

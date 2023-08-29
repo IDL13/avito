@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/IDL13/avito/internal/CSV"
 	request "github.com/IDL13/avito/internal/requests"
 	"github.com/IDL13/avito/internal/timer"
 )
@@ -36,6 +37,11 @@ func GettingData(r *http.Request, keyRequest string) (s string, err error) {
 
 func (h *Handler) StartServer(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Server start"))
+	data := []string{"UserID", "Segment", "Add/Remove", "Date-Time"}
+	err := CSV.WriteInCSV(data)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (h *Handler) CreateSegment(w http.ResponseWriter, r *http.Request) {
@@ -142,10 +148,27 @@ func (h *Handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		err = timer.CallAt(ttl.Stop, request.DeleteDependencies, formatId, ttl.DependenciesData.AddSegments)
+		err = timer.CallAt(ttl.Stop, request.DeleteDependencies, formatId, ttl.DependenciesData.DeleteSegments)
 		if err != nil {
 			panic(err)
 		}
+	} else {
+		w.Write([]byte("This url only handles POST requests"))
+	}
+}
+
+func (h *Handler) Hishtory(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		timeInterval, err := GettingData(r, "date")
+		if err != nil {
+			panic(err)
+		}
+		mapa := CSV.ReadInCSV(timeInterval)
+		js, err := json.Marshal(mapa)
+		if err != nil {
+			panic(err)
+		}
+		w.Write(js)
 	} else {
 		w.Write([]byte("This url only handles POST requests"))
 	}
