@@ -3,28 +3,14 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
 
 	"github.com/IDL13/avito/internal/CSV"
-	request "github.com/IDL13/avito/internal/requests"
 	"github.com/IDL13/avito/internal/timer"
 )
-
-type Handler struct{}
-
-type dependenciesData struct {
-	UserId         string   `json:"id"`
-	DeleteSegments []string `json:"del_segments"`
-	AddSegments    []string `json:"add_segments"`
-}
-
-type ttlStruct struct {
-	DependenciesData dependenciesData `json:"data"`
-	Start            string           `json:"start"`
-	Stop             string           `json:"stop"`
-}
 
 func GettingData(r *http.Request, keyRequest string) (s string, err error) {
 	param := r.Body
@@ -35,7 +21,15 @@ func GettingData(r *http.Request, keyRequest string) (s string, err error) {
 
 }
 
-func (h *Handler) StartServer(w http.ResponseWriter, r *http.Request) {
+func Round(x float64) int {
+	t := math.Trunc(x)
+	if math.Abs(x-t) >= 0.5 {
+		return int(t + math.Copysign(1, x))
+	}
+	return int(t)
+}
+
+func (h *handler) StartServer(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Server start"))
 	data := []string{"UserID", "Segment", "Add/Remove", "Date-Time"}
 	err := CSV.WriteInCSV(data)
@@ -44,29 +38,37 @@ func (h *Handler) StartServer(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) CreateSegment(w http.ResponseWriter, r *http.Request) {
+func (h *handler) CreateSegment(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		jsonData, err := GettingData(r, "slug")
-		if err != nil {
-			panic(err)
-		}
-		err = request.InserSegment(jsonData)
+		param := r.Body
+		var S Segment
+		json.NewDecoder(param).Decode(&S)
+		err := h.db.InserSegment(S.Name)
 		if err != nil {
 			w.Write([]byte("This segment is using"))
+		} else {
+			if S.Percent != 0 {
+				c, err := h.db.Count()
+				if err != nil {
+					panic(err)
+				}
+				percent := Round((float64(c) * float64(S.Percent)) / float64(100))
+				err = h.db.RandChoice(percent, S.Name)
+				w.Write([]byte("Segment added to the database"))
+			}
 		}
-		w.Write([]byte("Segment added to the database"))
 	} else {
 		w.Write([]byte("This url only handles POST requests"))
 	}
 }
 
-func (h *Handler) DeletingSegment(w http.ResponseWriter, r *http.Request) {
+func (h *handler) DeletingSegment(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		jsonData, err := GettingData(r, "slug")
 		if err != nil {
 			panic(err)
 		}
-		err = request.DeleteSegment(jsonData)
+		err = h.db.DeleteSegment(jsonData)
 		if err != nil {
 			w.Write([]byte("This segment was not found"))
 		}
@@ -76,7 +78,7 @@ func (h *Handler) DeletingSegment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) AddDelSegments(w http.ResponseWriter, r *http.Request) {
+func (h *handler) AddDelSegments(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		param := r.Body
 		var d dependenciesData
@@ -86,13 +88,13 @@ func (h *Handler) AddDelSegments(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		if len(d.AddSegments) > 0 {
-			err = request.InsertDependencies(formatId, d.AddSegments)
+			err = h.db.InsertDependencies(formatId, d.AddSegments)
 			if err != nil {
 				panic(err)
 			}
 		}
 		if len(d.DeleteSegments) > 0 {
-			err = request.DeleteDependencies(formatId, d.DeleteSegments)
+			err = h.db.DeleteDependencies(formatId, d.DeleteSegments)
 			if err != nil {
 				panic(err)
 			}
@@ -102,7 +104,7 @@ func (h *Handler) AddDelSegments(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		jsonData, err := GettingData(r, "id")
 		if err != nil {
@@ -113,7 +115,7 @@ func (h *Handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Reque
 			fmt.Fprintf(os.Stderr, "data conversion error:%v", err)
 			os.Exit(1)
 		}
-		info, err := request.SearchSegmentsForUser()
+		info, err := h.db.SearchSegmentsForUser()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Segment serch error:%v", err)
 			os.Exit(1)
@@ -135,7 +137,7 @@ func (h *Handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (h *Handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
+func (h *handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		param := r.Body
 		var ttl ttlStruct
@@ -144,11 +146,11 @@ func (h *Handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		err = timer.CallAt(ttl.Start, request.InsertDependencies, formatId, ttl.DependenciesData.AddSegments)
+		err = timer.CallAt(ttl.Start, h.db.InsertDependencies, formatId, ttl.DependenciesData.AddSegments)
 		if err != nil {
 			panic(err)
 		}
-		err = timer.CallAt(ttl.Stop, request.DeleteDependencies, formatId, ttl.DependenciesData.DeleteSegments)
+		err = timer.CallAt(ttl.Stop, h.db.DeleteDependencies, formatId, ttl.DependenciesData.DeleteSegments)
 		if err != nil {
 			panic(err)
 		}
@@ -157,7 +159,7 @@ func (h *Handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) Hishtory(w http.ResponseWriter, r *http.Request) {
+func (h *handler) Hishtory(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		timeInterval, err := GettingData(r, "date")
 		if err != nil {

@@ -26,23 +26,6 @@ func CreateCSV() error {
 	return nil
 }
 
-func DeleteCSV() error {
-	csvFile, err := os.OpenFile("./csv_log.csv", os.O_RDWR, 0777)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error from reading csv file: %v\n", err)
-		os.Exit(1)
-	}
-	w := csv.NewWriter(csvFile)
-	w.Write([]string{""})
-	w.Flush()
-	if err := w.Error(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error from csv writer: %v\n", err)
-		os.Exit(1)
-	}
-	defer csvFile.Close()
-	return nil
-}
-
 func WriteInCSV(reconds []string) error {
 	csvFile, err := os.OpenFile("./csv_log.csv", os.O_APPEND|os.O_WRONLY, 0777)
 	if err != nil {

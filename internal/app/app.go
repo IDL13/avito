@@ -12,7 +12,7 @@ import (
 
 type App struct {
 	s *http.Server
-	h *handler.Handler
+	h handler.Handler
 }
 
 func New() *App {
@@ -24,6 +24,7 @@ func New() *App {
 			MaxHeaderBytes: 1 << 20,
 		},
 	}
+	a.h = handler.New()
 	http.HandleFunc("/", a.h.StartServer)
 	http.HandleFunc("/create_segment", a.h.CreateSegment)
 	http.HandleFunc("/deleting_segment", a.h.DeletingSegment)
