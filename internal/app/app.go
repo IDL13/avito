@@ -35,7 +35,7 @@ func New() *App {
 	return a
 }
 
-func (a *App) Run() {
+func (a *App) Run(stop chan bool) {
 	fmt.Println(`
 ╔══╗╔══╗─╔╗───╔╗╔══╗
 ╚╗╔╝║╔╗╚╗║║──╔╝║╚═╗║
@@ -52,8 +52,8 @@ func (a *App) Run() {
 	// if err := request.CreateTables(); err != nil {
 	// 	panic(err)
 	// }
-	defer os.Remove("./csv_log.csv")
 	if err := a.s.ListenAndServe(); err != nil {
+		stop <- true
 		os.Exit(1)
 	}
 }
