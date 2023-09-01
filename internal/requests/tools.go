@@ -1,15 +1,14 @@
-package tools
+package requests
 
 import (
 	"fmt"
 	"os"
 
 	"github.com/IDL13/avito/internal/config"
-	request "github.com/IDL13/avito/internal/requests"
 	"github.com/IDL13/avito/pkg/mysql"
 )
 
-func CreateTables() error {
+func (s *server) CreateTables() error {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
 	if err != nil {
@@ -34,7 +33,7 @@ func CreateTables() error {
 	return nil
 }
 
-func Count() (int, error) {
+func (s *server) Count() (int, error) {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
 	if err != nil {
@@ -48,7 +47,7 @@ func Count() (int, error) {
 	return c, nil
 }
 
-func RandChoice(counter int, segment string) error {
+func (s *server) RandChoice(counter int, segment string) error {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
 	if err != nil {
@@ -59,7 +58,7 @@ func RandChoice(counter int, segment string) error {
 	q2 := `INSERT INTO Dependencies (UserId, Segment) VALUES (?, ?)`
 	row, err := conn.Query(q1, counter)
 	for row.Next() {
-		var s request.Set
+		var s Set
 		row.Scan(s)
 		_, err := conn.Exec(q2, s.Id, segment)
 		if err != nil {

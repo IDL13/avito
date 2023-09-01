@@ -9,6 +9,12 @@ import (
 	"github.com/IDL13/avito/internal/app"
 )
 
+//	@title			Swagger Avito User segmentation application
+//	@version		1.0
+//	@description	Avito User segmentation application
+
+// @host		127.0.0.1:8080
+// @BasePath	/
 func main() {
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)

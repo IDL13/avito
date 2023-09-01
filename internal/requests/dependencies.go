@@ -1,4 +1,4 @@
-package dependencies
+package requests
 
 import (
 	"fmt"
@@ -7,12 +7,11 @@ import (
 
 	"github.com/IDL13/avito/internal/CSV"
 	"github.com/IDL13/avito/internal/config"
-	"github.com/IDL13/avito/internal/requests"
 	"github.com/IDL13/avito/internal/timer"
 	"github.com/IDL13/avito/pkg/mysql"
 )
 
-func SearchSegmentsForUser() (map[int][]string, error) {
+func (s *server) SearchSegmentsForUser() (map[int][]string, error) {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
 	if err != nil {
@@ -27,7 +26,7 @@ func SearchSegmentsForUser() (map[int][]string, error) {
 	}
 	m := make(map[int][]string)
 	for row.Next() {
-		var S requests.Set
+		var S Set
 		err = row.Scan(&S.Id, &S.Segment)
 		if err != nil {
 			panic(err)
@@ -42,7 +41,7 @@ func SearchSegmentsForUser() (map[int][]string, error) {
 	return m, nil
 }
 
-func InsertDependencies(UserId int, Segments []string) error {
+func (s *server) InsertDependencies(UserId int, Segments []string) error {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
 	if err != nil {
@@ -65,7 +64,7 @@ func InsertDependencies(UserId int, Segments []string) error {
 	return nil
 }
 
-func DeleteDependencies(UserId int, Segments []string) error {
+func (s *server) DeleteDependencies(UserId int, Segments []string) error {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
 	if err != nil {

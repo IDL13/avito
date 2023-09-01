@@ -1,10 +1,18 @@
 package requests
 
+func New() Db {
+	return &server{}
+}
+
 type Set struct {
 	Id      int
 	Segment string
 }
 
+type server struct {
+}
+
+//go:generate mockgen -source=requests.go -destination=../mock/mock.go -package=mock_serv
 type Db interface {
 	users
 	segments

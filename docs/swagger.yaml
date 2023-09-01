@@ -1,0 +1,330 @@
+basePath: /
+definitions:
+  handler.createSegment:
+    properties:
+      percent:
+        type: integer
+      slug:
+        type: string
+    type: object
+  handler.deleteSegment:
+    properties:
+      slug:
+        type: string
+    type: object
+  handler.dependenciesData:
+    properties:
+      add_segments:
+        items:
+          type: string
+        type: array
+      del_segments:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+    type: object
+  handler.history:
+    properties:
+      date:
+        type: string
+    type: object
+  handler.ttlStruct:
+    properties:
+      data:
+        $ref: '#/definitions/handler.dependenciesData'
+      start:
+        type: string
+      stop:
+        type: string
+    type: object
+  handler.user:
+    properties:
+      id:
+        type: string
+      slug:
+        type: string
+    type: object
+  response.HttpError:
+    properties:
+      message:
+        type: string
+    type: object
+  response.HttpResponse:
+    properties:
+      message:
+        type: string
+    type: object
+host: 127.0.0.1:8080
+info:
+  contact: {}
+  description: Avito User segmentation application
+  title: Swagger Avito User segmentation application
+  version: "1.0"
+paths:
+  //history:
+    post:
+      consumes:
+      - application/json
+      description: Check history
+      parameters:
+      - description: ttl hadler
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/handler.history'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HttpError'
+      summary: Hishtory
+      tags:
+      - history
+  /adding_user_to_segment:
+    post:
+      consumes:
+      - application/json
+      description: Addition segments for user in database
+      parameters:
+      - description: Adding Segment
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/handler.dependenciesData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HttpError'
+      summary: AddDelSegments
+      tags:
+      - dependencies
+  /create_segment:
+    post:
+      consumes:
+      - application/json
+      description: Create segment in database
+      parameters:
+      - description: Create Segment
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/handler.createSegment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HttpError'
+      summary: CreateSegment
+      tags:
+      - segments
+  /create_user:
+    post:
+      consumes:
+      - application/json
+      description: Create user in database
+      parameters:
+      - description: Create User
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/handler.user'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HttpError'
+      summary: CreateUser
+      tags:
+      - users
+  /deleting_segment:
+    post:
+      consumes:
+      - application/json
+      description: Delet segment in database
+      parameters:
+      - description: Delete Segment
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/handler.deleteSegment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HttpError'
+      summary: DeletingSegment
+      tags:
+      - segments
+  /deleting_user:
+    post:
+      consumes:
+      - application/json
+      description: Delete user in database
+      parameters:
+      - description: Delete User
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/handler.user'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HttpError'
+      summary: DeletingUser
+      tags:
+      - users
+  /getting_active_user_segments:
+    post:
+      consumes:
+      - application/json
+      description: User segment check
+      parameters:
+      - description: Check Segment
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/handler.user'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HttpError'
+      summary: GettingActiveUserSegments
+      tags:
+      - dependencies
+  /ttl_adding_user_to_segment:
+    post:
+      consumes:
+      - application/json
+      description: Ttl adding or remove
+      parameters:
+      - description: ttl hadler
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/handler.ttlStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HttpError'
+      summary: TtlAddDelSegments
+      tags:
+      - ttl
+swagger: "2.0"

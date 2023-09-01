@@ -6,13 +6,16 @@ import (
 	"os"
 	"time"
 
+	_ "github.com/IDL13/avito/docs"
 	"github.com/IDL13/avito/internal/CSV"
 	"github.com/IDL13/avito/internal/handler"
+	httpSwager "github.com/swaggo/http-swagger"
 )
 
 type App struct {
-	s *http.Server
-	h handler.Handler
+	s   *http.Server
+	h   handler.Handler
+	mux *http.ServeMux
 }
 
 func New() *App {
@@ -25,13 +28,18 @@ func New() *App {
 		},
 	}
 	a.h = handler.New()
-	http.HandleFunc("/", a.h.StartServer)
-	http.HandleFunc("/create_segment", a.h.CreateSegment)
-	http.HandleFunc("/deleting_segment", a.h.DeletingSegment)
-	http.HandleFunc("/adding_user_to_segment", a.h.AddDelSegments)
-	http.HandleFunc("/getting_active_user_segments", a.h.GettingActiveUserSegments)
-	http.HandleFunc("/ttl_adding_user_to_segment", a.h.TtlAddDelSegments)
-	http.HandleFunc("/history", a.h.Hishtory)
+	a.mux = http.NewServeMux()
+	a.s.Handler = a.mux
+	a.mux.HandleFunc("/", a.h.StartServer)
+	a.mux.HandleFunc("/create_segment", a.h.CreateSegment)
+	a.mux.HandleFunc("/deleting_segment", a.h.DeletingSegment)
+	a.mux.HandleFunc("/create_user", a.h.CreateUser)
+	a.mux.HandleFunc("/deleting_user", a.h.DeletingUser)
+	a.mux.HandleFunc("/adding_user_to_segment", a.h.AddDelSegments)
+	a.mux.HandleFunc("/getting_active_user_segments", a.h.GettingActiveUserSegments)
+	a.mux.HandleFunc("/ttl_adding_user_to_segment", a.h.TtlAddDelSegments)
+	a.mux.HandleFunc("/history", a.h.Hishtory)
+	a.mux.HandleFunc("/docs/", httpSwager.WrapHandler)
 	return a
 }
 
@@ -45,7 +53,7 @@ func (a *App) Run(stop chan bool) {
 ╚══╝╚═══╝╚══╝─╚╝╚══╝
 	`)
 	fmt.Println("[SERVER STARTED]")
-	fmt.Println("http://127.0.0.1:8080/")
+	fmt.Println("http://127.0.0.1:8080/docs/")
 	if err := CSV.CreateCSV(); err != nil {
 		panic(err)
 	}

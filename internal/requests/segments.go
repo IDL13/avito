@@ -1,4 +1,4 @@
-package segments
+package requests
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"github.com/IDL13/avito/pkg/mysql"
 )
 
-func InserSegment(segment string) error {
+func (s *server) InserSegment(segment string) error {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
 	if err != nil {
@@ -35,7 +35,7 @@ func InserSegment(segment string) error {
 	return nil
 }
 
-func DeleteSegment(segment string) error {
+func (s *server) DeleteSegment(segment string) error {
 	config := config.GetConfig()
 	conn, err := mysql.NewClient(*config)
 	if err != nil {
