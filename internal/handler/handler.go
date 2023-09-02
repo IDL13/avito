@@ -289,7 +289,7 @@ func (h *handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
 // @Failure		400		{object}	response.HttpError
 // @Failure		404		{object}	response.HttpError
 // @Failure		500		{object}	response.HttpError
-// @Router			//history [post]
+// @Router			/history [post]
 func (h *handler) Hishtory(w http.ResponseWriter, r *http.Request) {
 	h.resp = response.NewOk()
 	h.err = response.NewErr()

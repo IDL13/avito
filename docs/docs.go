@@ -15,57 +15,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "//history": {
-            "post": {
-                "description": "Check history",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "history"
-                ],
-                "summary": "Hishtory",
-                "parameters": [
-                    {
-                        "description": "ttl hadler",
-                        "name": "input",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/handler.history"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.HttpResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.HttpError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.HttpError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.HttpError"
-                        }
-                    }
-                }
-            }
-        },
         "/adding_user_to_segment": {
             "post": {
                 "description": "Addition segments for user in database",
@@ -372,6 +321,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/history": {
+            "post": {
+                "description": "Check history",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "history"
+                ],
+                "summary": "Hishtory",
+                "parameters": [
+                    {
+                        "description": "ttl hadler",
+                        "name": "input",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/handler.history"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.HttpResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.HttpError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.HttpError"
+                        }
+                    }
+                }
+            }
+        },
         "/ttl_adding_user_to_segment": {
             "post": {
                 "description": "Ttl adding or remove",
@@ -460,7 +460,7 @@ const docTemplate = `{
                     }
                 },
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	mock_serv "github.com/IDL13/avito/internal/mock"
+	mock_serv "github.com/IDL13/avito/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

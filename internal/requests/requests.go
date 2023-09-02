@@ -12,7 +12,7 @@ type Set struct {
 type server struct {
 }
 
-//go:generate mockgen -source=requests.go -destination=../mock/mock.go -package=mock_serv
+//go:generate mockgen -source=requests.go -destination=../../mock/mock.go -package=mock_serv
 type Db interface {
 	users
 	segments

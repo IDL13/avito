@@ -23,7 +23,7 @@ definitions:
           type: string
         type: array
       id:
-        type: string
+        type: integer
     type: object
   handler.history:
     properties:
@@ -63,39 +63,6 @@ info:
   title: Swagger Avito User segmentation application
   version: "1.0"
 paths:
-  //history:
-    post:
-      consumes:
-      - application/json
-      description: Check history
-      parameters:
-      - description: ttl hadler
-        in: body
-        name: input
-        schema:
-          $ref: '#/definitions/handler.history'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.HttpResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.HttpError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.HttpError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.HttpError'
-      summary: Hishtory
-      tags:
-      - history
   /adding_user_to_segment:
     post:
       consumes:
@@ -294,6 +261,39 @@ paths:
       summary: GettingActiveUserSegments
       tags:
       - dependencies
+  /history:
+    post:
+      consumes:
+      - application/json
+      description: Check history
+      parameters:
+      - description: ttl hadler
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/handler.history'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.HttpResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.HttpError'
+      summary: Hishtory
+      tags:
+      - history
   /ttl_adding_user_to_segment:
     post:
       consumes:
