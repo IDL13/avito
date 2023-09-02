@@ -55,7 +55,8 @@ func (a *App) Run(stop chan bool) {
 	fmt.Println("[SERVER STARTED]")
 	fmt.Println("http://127.0.0.1:8080/docs/")
 	if err := CSV.CreateCSV(); err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "CSV file not created:%v", err)
+		os.Exit(1)
 	}
 	// if err := request.CreateTables(); err != nil {
 	// 	panic(err)

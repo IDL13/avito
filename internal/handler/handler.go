@@ -62,6 +62,8 @@ func (h *handler) CreateSegment(w http.ResponseWriter, r *http.Request) {
 				percent := Round((float64(c) * float64(s.Percent)) / float64(100))
 				err = h.db.RandChoice(percent, s.Name)
 				w.Write(h.resp.NewResponse("Segment added to the database"))
+			} else {
+				w.Write(h.err.NewError("empty percent"))
 			}
 		}
 	} else {
@@ -90,9 +92,10 @@ func (h *handler) DeletingSegment(w http.ResponseWriter, r *http.Request) {
 		h.db = requests.New()
 		err := h.db.DeleteSegment(s.Name)
 		if err != nil {
-			w.Write(h.err.NewError("This segment was not found"))
+			w.Write(h.err.NewError("This segment was not found or there is dublicate in database"))
+		} else {
+			w.Write(h.resp.NewResponse("Segment seccessfully deleted"))
 		}
-		w.Write(h.resp.NewResponse("Segment seccessfully deleted"))
 	} else {
 		w.Write(h.err.NewError("This url only handles POST requests"))
 	}
@@ -170,25 +173,25 @@ func (h *handler) DeletingUser(w http.ResponseWriter, r *http.Request) {
 // @Failure		500		{object}	response.HttpError
 // @Router			/adding_user_to_segment [post]
 func (h *handler) AddDelSegments(w http.ResponseWriter, r *http.Request) {
+	h.resp = response.NewOk()
+	h.err = response.NewErr()
 	if r.Method == "POST" {
 		param := r.Body
 		var d dependenciesData
 		json.NewDecoder(param).Decode(&d)
 		h.db = requests.New()
-		formatId, err := strconv.Atoi(d.UserId)
-		if err != nil {
-			panic(err)
-		}
 		if len(d.AddSegments) > 0 {
-			err = h.db.InsertDependencies(formatId, d.AddSegments)
+			err := h.db.InsertDependencies(d.UserId, d.AddSegments)
 			if err != nil {
-				panic(err)
+				w.Write(h.err.NewError("Uncorected insert intput"))
+			} else {
+				w.Write(h.resp.NewResponse("Operation seccessful"))
 			}
 		}
 		if len(d.DeleteSegments) > 0 {
-			err = h.db.DeleteDependencies(formatId, d.DeleteSegments)
+			err := h.db.DeleteDependencies(d.UserId, d.DeleteSegments)
 			if err != nil {
-				panic(err)
+				w.Write(h.err.NewError("Uncorected delete intput"))
 			}
 		}
 		w.Write(h.resp.NewResponse("Operation seccessful"))
@@ -209,6 +212,8 @@ func (h *handler) AddDelSegments(w http.ResponseWriter, r *http.Request) {
 // @Failure		500		{object}	response.HttpError
 // @Router			/getting_active_user_segments [post]
 func (h *handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Request) {
+	h.resp = response.NewOk()
+	h.err = response.NewErr()
 	if r.Method == "POST" {
 		param := r.Body
 		var user user
@@ -253,20 +258,18 @@ func (h *handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Reque
 // @Failure		500		{object}	response.HttpError
 // @Router			/ttl_adding_user_to_segment [post]
 func (h *handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
+	h.resp = response.NewOk()
+	h.err = response.NewErr()
 	if r.Method == "POST" {
 		param := r.Body
 		var ttl ttlStruct
 		json.NewDecoder(param).Decode(&ttl)
 		h.db = requests.New()
-		formatId, err := strconv.Atoi(ttl.DependenciesData.UserId)
+		err := timer.CallAt(ttl.Start, h.db.InsertDependencies, ttl.DependenciesData.UserId, ttl.DependenciesData.AddSegments)
 		if err != nil {
 			panic(err)
 		}
-		err = timer.CallAt(ttl.Start, h.db.InsertDependencies, formatId, ttl.DependenciesData.AddSegments)
-		if err != nil {
-			panic(err)
-		}
-		err = timer.CallAt(ttl.Stop, h.db.DeleteDependencies, formatId, ttl.DependenciesData.DeleteSegments)
+		err = timer.CallAt(ttl.Stop, h.db.DeleteDependencies, ttl.DependenciesData.UserId, ttl.DependenciesData.DeleteSegments)
 		if err != nil {
 			panic(err)
 		}
@@ -288,6 +291,8 @@ func (h *handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
 // @Failure		500		{object}	response.HttpError
 // @Router			//history [post]
 func (h *handler) Hishtory(w http.ResponseWriter, r *http.Request) {
+	h.resp = response.NewOk()
+	h.err = response.NewErr()
 	if r.Method == "POST" {
 		param := r.Body
 		var data history

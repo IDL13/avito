@@ -19,7 +19,7 @@ type handler struct {
 }
 
 type dependenciesData struct {
-	UserId         string   `json:"id"`
+	UserId         int      `json:"id"`
 	DeleteSegments []string `json:"del_segments"`
 	AddSegments    []string `json:"add_segments"`
 }

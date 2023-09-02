@@ -1,6 +1,7 @@
 package requests
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -42,26 +43,30 @@ func (s *server) SearchSegmentsForUser() (map[int][]string, error) {
 }
 
 func (s *server) InsertDependencies(UserId int, Segments []string) error {
-	config := config.GetConfig()
-	conn, err := mysql.NewClient(*config)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error from Connection: %v\n", err)
-		os.Exit(1)
-	}
-	q := `INSERT INTO Dependencies (UserId, Segment) VALUES (?, ?)`
-	for iter := range Segments {
-		_, err := conn.Exec(q, UserId, Segments[iter])
+	if UserId != 0 && len(Segments) > 0 {
+		config := config.GetConfig()
+		conn, err := mysql.NewClient(*config)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Cyclic data append error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Error from Connection: %v\n", err)
 			os.Exit(1)
 		}
-		err = CSV.WriteInCSV([]string{strconv.Itoa(UserId), Segments[iter], "Add", timer.TimeNow()})
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Cyclic CSV writing error: %v\n", err)
-			os.Exit(1)
+		q := `INSERT INTO Dependencies (UserId, Segment) VALUES (?, ?)`
+		for _, val := range Segments {
+			_, err := conn.Exec(q, UserId, val)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Cyclic data append error: %v\n", err)
+				os.Exit(1)
+			}
+			err = CSV.WriteInCSV([]string{strconv.Itoa(UserId), val, "Add", timer.TimeNow()})
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Cyclic CSV writing error: %v\n", err)
+				os.Exit(1)
+			}
 		}
+		return nil
+	} else {
+		return errors.New("empty json")
 	}
-	return nil
 }
 
 func (s *server) DeleteDependencies(UserId int, Segments []string) error {

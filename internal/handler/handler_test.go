@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -121,9 +120,9 @@ func TestInserSegment(t *testing.T) {
 		expectedBody string
 	}{{
 		name:      "OK",
-		inputBody: `{"slug":"test", "percent":10}`,
+		inputBody: `{"slug":"testAVITO", "percent":10}`,
 		inputService: createSegment{
-			Name:    "test",
+			Name:    "testAVITO",
 			Percent: 10,
 		},
 		expectedCode: 200,
@@ -134,23 +133,23 @@ func TestInserSegment(t *testing.T) {
 	},
 		{
 			name:      "Simple create",
-			inputBody: `{"slug":"test", "percent":}`,
+			inputBody: `{"slug":"testAVITO2", "percent":0}`,
 			inputService: createSegment{
-				Name:    "test",
-				Percent: 10,
+				Name:    "testAVITO2",
+				Percent: 0,
 			},
 			expectedCode: 200,
 			f: func(s *mock_serv.MockDb, u createSegment) {
 				s.EXPECT().InserSegment(u.Name).Return(nil).AnyTimes()
 			},
-			expectedBody: `{"message":"Segment added to the database"}`,
+			expectedBody: `{"message":"empty percent"}`,
 		},
 		{
 			name:      "400",
-			inputBody: `{"slu":"test", "percent":10}`,
+			inputBody: `{"slu":"test", "percent":0}`,
 			inputService: createSegment{
-				Name:    "test",
-				Percent: 10,
+				Name:    "",
+				Percent: 0,
 			},
 			expectedCode: 200,
 			f: func(s *mock_serv.MockDb, u createSegment) {
@@ -189,9 +188,9 @@ func TestDeleteSegment(t *testing.T) {
 		expectedBody string
 	}{{
 		name:      "OK",
-		inputBody: `{"slug":"test"}`,
+		inputBody: `{"slug":"testAVITO2"}`,
 		inputService: deleteSegment{
-			Name: "test",
+			Name: "testAVITO2",
 		},
 		expectedCode: 200,
 		f: func(s *mock_serv.MockDb, u deleteSegment) {
@@ -209,7 +208,7 @@ func TestDeleteSegment(t *testing.T) {
 			f: func(s *mock_serv.MockDb, u deleteSegment) {
 				s.EXPECT().InserSegment(u.Name).Return(nil).AnyTimes()
 			},
-			expectedBody: `{"message":"This segment was not found"}`,
+			expectedBody: `{"message":"This segment was not found or there is dublicate in database"}`,
 		}}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -243,15 +242,15 @@ func TestSearchSegmentsForUser(t *testing.T) {
 		expectedBody string
 	}{{
 		name:      "OK",
-		inputBody: ``,
+		inputBody: `{"id":"3"}`,
 		inputService: user{
-			Name: "test",
+			Id: "3",
 		},
 		expectedCode: 200,
 		f: func(s *mock_serv.MockDb, u user) {
 			s.EXPECT().SearchSegmentsForUser().Return(info, nil).AnyTimes()
 		},
-		expectedBody: `{"message":"Segment seccessfully deleted"}`,
+		expectedBody: `{"3":["AVITO_DISCOUNT_50","AVITO_DISCOUNT_30","VOICE_MESAGE","AVITO_DISCOUNT_30","AVITO_DISCOUNT_30","VOICE_MESAGE","AVITO_DISCOUNT_30","AVITO_DISCOUNT_30","VOICE_MESAGE","AVITO_DISCOUNT_30"]}`,
 	},
 	}
 	for _, test := range tests {
@@ -285,18 +284,16 @@ func TestInsertDependencies(t *testing.T) {
 		expectedBody string
 	}{{
 		name:      "OK",
-		inputBody: `{"id":"1","del_segments":[], "add_segments":["AVITO_MESSAGE"]}`,
+		inputBody: `{"id":2,"add_segments":["AVITO_MESSAGE", "AVITO"]}`,
 		inputService: dependenciesData{
-			UserId:         "1",
-			DeleteSegments: []string{},
-			AddSegments:    []string{"AVITO_MESSAGE"},
+			UserId:      2,
+			AddSegments: []string{"AVITO_MESSAGE", "AVITO"},
 		},
 		expectedCode: 200,
 		f: func(s *mock_serv.MockDb, u dependenciesData) {
-			formatId, _ := strconv.Atoi(u.UserId)
-			s.EXPECT().InsertDependencies(formatId, u.AddSegments).Return(nil).AnyTimes()
+			s.EXPECT().InsertDependencies(u.UserId, u.AddSegments).Return(nil).AnyTimes()
 		},
-		expectedBody: `{"message":"Operation seccessful"}`,
+		expectedBody: `{"message":"Operation seccessful"}{"message":"Operation seccessful"}`,
 	},
 	}
 	for _, test := range tests {
@@ -330,16 +327,15 @@ func TestDeleteDependencies(t *testing.T) {
 		expectedBody string
 	}{{
 		name:      "OK",
-		inputBody: `{"id":"1","del_segments":["AVITO_MESSAGE"], "add_segments":[]}`,
+		inputBody: `{"id":1,"del_segments":["AVITO_MESSAGE"], "add_segments":[]}`,
 		inputService: dependenciesData{
-			UserId:         "1",
+			UserId:         1,
 			DeleteSegments: []string{"AVITO_MESSAGE"},
 			AddSegments:    []string{},
 		},
 		expectedCode: 200,
 		f: func(s *mock_serv.MockDb, u dependenciesData) {
-			formatId, _ := strconv.Atoi(u.UserId)
-			s.EXPECT().DeleteDependencies(formatId, u.DeleteSegments).Return(nil).AnyTimes()
+			s.EXPECT().DeleteDependencies(u.UserId, u.DeleteSegments).Return(nil).AnyTimes()
 		},
 		expectedBody: `{"message":"Operation seccessful"}`,
 	},
