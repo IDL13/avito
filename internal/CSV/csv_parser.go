@@ -15,14 +15,18 @@ func CreateCSV() error {
 		fmt.Fprintf(os.Stderr, "Error from reading csv file: %v\n", err)
 		os.Exit(1)
 	}
+
 	w := csv.NewWriter(csvFile)
 	w.Write([]string{"UserID", "Segment", "Add/Remove", "Date-Time"})
 	w.Flush()
+
 	if err := w.Error(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error from csv writer: %v\n", err)
 		os.Exit(1)
 	}
+
 	defer csvFile.Close()
+
 	return nil
 }
 
@@ -32,14 +36,18 @@ func WriteInCSV(reconds []string) error {
 		fmt.Fprintf(os.Stderr, "Error from reading csv file: %v\n", err)
 		os.Exit(1)
 	}
+
 	w := csv.NewWriter(csvFile)
 	w.Write(reconds)
 	w.Flush()
+
 	if err := w.Error(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error from csv writer: %v\n", err)
 		os.Exit(1)
 	}
+
 	defer csvFile.Close()
+
 	return nil
 }
 
@@ -48,15 +56,20 @@ func ReadInCSV(time string) map[string][][]string {
 		fmt.Fprintf(os.Stderr, "Error from Chmod operation: %v\n", err)
 		os.Exit(1)
 	}
+
 	csvFile, err := os.Open("./csv_log.csv")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error from reading csv file: %v\n", err)
 		os.Exit(1)
 	}
+
 	defer csvFile.Close()
+
 	reader := csv.NewReader(csvFile)
 	reader.Comma = ','
+
 	m := make(map[string][][]string)
+
 	for {
 		record, err := reader.Read()
 		if err == io.EOF {
@@ -66,5 +79,6 @@ func ReadInCSV(time string) map[string][][]string {
 			m[time] = append(m[time], record)
 		}
 	}
+
 	return m
 }

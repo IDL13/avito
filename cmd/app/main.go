@@ -19,15 +19,19 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
 	stop := make(chan bool, 1)
+
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
 	go func() {
 		sig := <-sigs
 		fmt.Println(sig)
 		os.Remove("./csv_log.csv")
 		done <- true
 	}()
+
 	a := app.New()
 	go a.Run(stop)
+
 	select {
 	case stop_r := <-done:
 		fmt.Println(stop_r)

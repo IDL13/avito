@@ -17,7 +17,9 @@ func (s *server) InsertUser(name string) error {
 			fmt.Fprintf(os.Stderr, "Error from Connection: %v\n", err)
 			os.Exit(1)
 		}
+
 		q := `INSERT INTO Users (Name) VALUES (?)`
+
 		_, err = conn.Exec(q, name)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error while adding data: %v\n", err)
@@ -37,7 +39,9 @@ func (s *server) DeleteUser(name string) error {
 			fmt.Fprintf(os.Stderr, "Error from Connection: %v\n", err)
 			os.Exit(1)
 		}
+
 		q := `DELETE FROM Users WHERE Name = ?`
+
 		_, err = conn.Exec(q, name)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error while adding data: %v\n", err)

@@ -22,9 +22,11 @@ func CallAt(callTime string, f func(int, []string) error, UserId int, Segments [
 		fmt.Fprintf(os.Stderr, "Time Parse Error:%v", err)
 		os.Exit(1)
 	}
+
 	n := time.Now().Format(timeLayout)
 	now, _ := time.Parse(timeLayout, n)
 	duration := cTime.Sub(now)
+
 	go func() error {
 		time.Sleep(duration)
 		err = f(UserId, Segments)
@@ -34,5 +36,6 @@ func CallAt(callTime string, f func(int, []string) error, UserId int, Segments [
 		}
 		return nil
 	}()
+
 	return nil
 }

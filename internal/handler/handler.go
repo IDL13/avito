@@ -45,11 +45,14 @@ func (h *handler) StartServer(w http.ResponseWriter, r *http.Request) {
 func (h *handler) CreateSegment(w http.ResponseWriter, r *http.Request) {
 	h.resp = response.NewOk()
 	h.err = response.NewErr()
+	h.db = requests.New()
+
 	if r.Method == "POST" {
 		param := r.Body
 		var s createSegment
+
 		json.NewDecoder(param).Decode(&s)
-		h.db = requests.New()
+
 		err := h.db.InserSegment(s.Name)
 		if err != nil {
 			w.Write(h.err.NewError(("This segment is using")))
@@ -59,6 +62,7 @@ func (h *handler) CreateSegment(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					panic(err)
 				}
+
 				percent := Round((float64(c) * float64(s.Percent)) / float64(100))
 				err = h.db.RandChoice(percent, s.Name)
 				w.Write(h.resp.NewResponse("Segment added to the database"))
@@ -85,11 +89,14 @@ func (h *handler) CreateSegment(w http.ResponseWriter, r *http.Request) {
 func (h *handler) DeletingSegment(w http.ResponseWriter, r *http.Request) {
 	h.resp = response.NewOk()
 	h.err = response.NewErr()
+	h.db = requests.New()
+
 	if r.Method == "POST" {
 		param := r.Body
 		var s deleteSegment
+
 		json.NewDecoder(param).Decode(&s)
-		h.db = requests.New()
+
 		err := h.db.DeleteSegment(s.Name)
 		if err != nil {
 			w.Write(h.err.NewError("This segment was not found or there is dublicate in database"))
@@ -115,11 +122,14 @@ func (h *handler) DeletingSegment(w http.ResponseWriter, r *http.Request) {
 func (h *handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	h.resp = response.NewOk()
 	h.err = response.NewErr()
+	h.db = requests.New()
+
 	if r.Method == "POST" {
 		param := r.Body
 		var user user
+
 		json.NewDecoder(param).Decode(&user)
-		h.db = requests.New()
+
 		err := h.db.InsertUser(user.Name)
 		if err != nil {
 			w.Write(h.err.NewError(("This userID is using")))
@@ -145,11 +155,14 @@ func (h *handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 func (h *handler) DeletingUser(w http.ResponseWriter, r *http.Request) {
 	h.resp = response.NewOk()
 	h.err = response.NewErr()
+	h.db = requests.New()
+
 	if r.Method == "POST" {
 		param := r.Body
 		var user user
+
 		json.NewDecoder(param).Decode(&user)
-		h.db = requests.New()
+
 		err := h.db.DeleteUser(user.Name)
 		if err != nil {
 			w.Write(h.err.NewError(("This userID is using")))
@@ -175,11 +188,14 @@ func (h *handler) DeletingUser(w http.ResponseWriter, r *http.Request) {
 func (h *handler) AddDelSegments(w http.ResponseWriter, r *http.Request) {
 	h.resp = response.NewOk()
 	h.err = response.NewErr()
+	h.db = requests.New()
+
 	if r.Method == "POST" {
 		param := r.Body
 		var d dependenciesData
+
 		json.NewDecoder(param).Decode(&d)
-		h.db = requests.New()
+
 		if len(d.AddSegments) > 0 {
 			err := h.db.InsertDependencies(d.UserId, d.AddSegments)
 			if err != nil {
@@ -188,6 +204,7 @@ func (h *handler) AddDelSegments(w http.ResponseWriter, r *http.Request) {
 				w.Write(h.resp.NewResponse("Operation seccessful"))
 			}
 		}
+
 		if len(d.DeleteSegments) > 0 {
 			err := h.db.DeleteDependencies(d.UserId, d.DeleteSegments)
 			if err != nil {
@@ -214,21 +231,26 @@ func (h *handler) AddDelSegments(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Request) {
 	h.resp = response.NewOk()
 	h.err = response.NewErr()
+	h.db = requests.New()
+
 	if r.Method == "POST" {
 		param := r.Body
 		var user user
+
 		json.NewDecoder(param).Decode(&user)
-		h.db = requests.New()
+
 		jsonInt, err := strconv.Atoi(user.Id)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "data conversion error:%v", err)
 			os.Exit(1)
 		}
+
 		info, err := h.db.SearchSegmentsForUser()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Segment serch error:%v", err)
 			os.Exit(1)
 		}
+
 		for key, value := range info {
 			if key == jsonInt {
 				ans := make(map[int][]string)
@@ -260,15 +282,19 @@ func (h *handler) GettingActiveUserSegments(w http.ResponseWriter, r *http.Reque
 func (h *handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
 	h.resp = response.NewOk()
 	h.err = response.NewErr()
+	h.db = requests.New()
+
 	if r.Method == "POST" {
 		param := r.Body
 		var ttl ttlStruct
+
 		json.NewDecoder(param).Decode(&ttl)
-		h.db = requests.New()
+
 		err := timer.CallAt(ttl.Start, h.db.InsertDependencies, ttl.DependenciesData.UserId, ttl.DependenciesData.AddSegments)
 		if err != nil {
 			panic(err)
 		}
+
 		err = timer.CallAt(ttl.Stop, h.db.DeleteDependencies, ttl.DependenciesData.UserId, ttl.DependenciesData.DeleteSegments)
 		if err != nil {
 			panic(err)
@@ -293,12 +319,16 @@ func (h *handler) TtlAddDelSegments(w http.ResponseWriter, r *http.Request) {
 func (h *handler) Hishtory(w http.ResponseWriter, r *http.Request) {
 	h.resp = response.NewOk()
 	h.err = response.NewErr()
+	h.db = requests.New()
+
 	if r.Method == "POST" {
 		param := r.Body
 		var data history
+
 		json.NewDecoder(param).Decode(&data)
-		h.db = requests.New()
+
 		mapa := CSV.ReadInCSV(data.Data)
+
 		js, err := json.Marshal(mapa)
 		if err != nil {
 			panic(err)

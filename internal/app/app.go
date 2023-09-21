@@ -30,6 +30,7 @@ func New() *App {
 	a.h = handler.New()
 	a.mux = http.NewServeMux()
 	a.s.Handler = a.mux
+
 	a.mux.HandleFunc("/", a.h.StartServer)
 	a.mux.HandleFunc("/create_segment", a.h.CreateSegment)
 	a.mux.HandleFunc("/deleting_segment", a.h.DeletingSegment)
@@ -40,6 +41,7 @@ func New() *App {
 	a.mux.HandleFunc("/ttl_adding_user_to_segment", a.h.TtlAddDelSegments)
 	a.mux.HandleFunc("/history", a.h.Hishtory)
 	a.mux.HandleFunc("/docs/", httpSwager.WrapHandler)
+
 	return a
 }
 
